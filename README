@@ -1,1 +1,7 @@
 Naptest- Not Another Pentest
+
+Usage:
+
+$ python2 naptest generate <nmap XML file/folder containing nmap XML files> #Generates the services db/array/flat files from nmap
+$ python2 testgen.py #Needs the services.array from the above command
+$ bash CABO.sh #Congrats, you have pentested
