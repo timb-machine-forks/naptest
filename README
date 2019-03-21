@@ -1,4 +1,5 @@
 Naptest- Not Another Pentest
+This is (probably) the world's most retarded pentest automation script. It does many things to just create a bash script which runs GNU parallel.
 
 Usage:
 
