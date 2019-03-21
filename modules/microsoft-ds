@@ -1,0 +1,8 @@
+#Dictionary, where key is the tool name, then a list in the following order: type of command (ip, multiple), output folder, command string (DIR=output folder, HOST=ip:port, IP=ip, PORT=port, protocol
+
+{
+
+"nmbscan": [ "ip", "nmbscan", "nbtscan -a HOST | tee DIR/HOST.out", "tcp"]
+"smbclient list anonymous": [ "ip", "smbclient-list-anon", "smbclient -L IP -U% | tee DIR/IP.out", "tcp"]
+
+}

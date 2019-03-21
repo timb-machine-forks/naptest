@@ -1,0 +1,8 @@
+#Dictionary, where key is the tool name, then a list in the following order: type of command (ip, multiple), output folder, command string (DIR=output folder, HOST=ip:port, IP=ip, PORT=port, protocol
+
+{
+
+"enum4linux": [ "ip", "enum4linux", "enum4linux -a IP | tee DIR/HOST.out", "tcp"],
+"nbtscan": [ "ip", "nbtscan", "nbtscan IP | tee DIR/HOST.out", "tcp"]
+
+}

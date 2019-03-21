@@ -1,0 +1,8 @@
+#Dictionary, where key is the tool name, then a list in the following order: type of command (ip, multiple), output folder, command string (DIR=output folder, HOST=ip:port, IP=ip, PORT=port, protocol
+
+{
+
+"ssl-cipher-suite-enum": [ "ip", "ssl-cipher-suite-enum", "perl /repos/testing-tool-repository/infrastructure-assessment/ssl-cipher-suite-enum/ssl-cipher-suite-enum.pl --outfile DIR/HOST.out HOST", "tcp"],
+"sslscan": [ "ip", "sslscan", "sslscan --xml=DIR/HOST.out HOST", "tcp"]
+
+}

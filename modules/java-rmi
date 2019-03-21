@@ -1,0 +1,7 @@
+#Dictionary, where key is the tool name, then a list in the following order: type of command (ip, multiple), output folder, command string (DIR=output folder, HOST=ip:port, IP=ip, PORT=port, protocol
+
+{
+
+"nmap RMI scripts": [ "ip", "nmap-rmi", "nmap --script=rmi-vuln-classloader,rmi-dumpregistry -sV --version-all -n -p PORT IP -oN DIR/HOST.out", "tcp"],
+
+}

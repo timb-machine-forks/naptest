@@ -1,0 +1,12 @@
+#Dictionary, where key is the tool name, then a list in the following order: type of command (ip, multiple), output folder, command string (DIR=output folder, HOST=ip:port, IP=ip, PORT=port, protocol)
+
+{
+
+"curl web headers": [ "ip", "web-headers", "curl -LI --connect-timeout 60 --insecure PROTO://HOST > DIR/HOST.PROTO.out", "tcp"],
+"CutyCapt": [ "ip", "cutycapt", "CutyCapt --url=PROTO://HOST --out=DIR/HOST.PROTO.png --insecure", "tcp"],
+"dirb": [ "ip", "dirb", "dirb PROTO://HOST /repos/SecLists/Discovery/Web_Content/KitchensinkDirectories.fuzz.txt  -w -o DIR/HOST.PROTO.out", "tcp"],
+"nikto": [ "ip", "nikto", "nikto -h PROTO://HOST -output DIR/HOST.PROTO.txt", "tcp"],
+
+
+
+}

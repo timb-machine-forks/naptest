@@ -1,0 +1,7 @@
+#Dictionary, where key is the tool name, then a list in the following order: type of command (ip, multiple), output folder, command string (DIR=output folder, HOST=ip:port, IP=ip, PORT=port, protocol
+
+{
+
+"rdp-sec-check": [ "ip", "rdp-sec-check", "perl /repos/testing-tool-repository/experimental/rdp-sec-check.pl --outfile=DIR/HOST.out HOST", "tcp"]
+
+}

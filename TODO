@@ -1,0 +1,9 @@
+#take python object
+works out the services found
+find lists of commands per host for each service
+create a list of these to be run by "gnu parallel"
+
+
+script up running gnu parallel
+
+outpat parsing of some sort?!

@@ -1,0 +1,215 @@
+#!/bin/python2
+# NAPTEST   # Not another pentest!?
+# Take a nap.
+import sys,sqlite3,os,argparse
+table='scandata'
+testettelocation="/home/mike/tmp/naptest/testette/"
+
+class naptest:
+    
+    #initiate parsing
+    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Assisting with data manipulation and the automation of infratructure network tests.")
+    parser.add_argument("level", help="Level of work to perform: generate, test. Currently only generate is supported.", choices=["generate", "test"])
+    parser.add_argument("xml", help="Path to the nmap XML output")  
+    
+    #general optional arguments
+    parser.add_argument("-o" , "--output", help="Directory for output", default=".")
+    global args
+    args = parser.parse_args()
+
+
+    # import nmap xml to a sqlite database for utility. 
+    def xml2sqlite(self):
+        import xml.etree.ElementTree as ET
+        import sqlite3 as lite
+        import sys
+        import os
+
+        def processxml(xmlfile):
+            db = os.path.join(args.output, "scan.sqlite")
+            if os.path.isfile(db):
+                pass
+            dbtable = "scandata"
+            con = lite.connect(db)
+            global database
+            database = args.output+"/"+"scan.sqlite"
+    
+            #Get and parse the XML
+            tree = ET.ElementTree(file = xmlfile) 
+            root = tree.getroot()
+    
+            #Create the table in the database
+            cur = con.cursor()
+            try:
+                cur.execute("CREATE TABLE "+dbtable+" (hostname varchar(100), ip varchar(16), port integer(5), protocol varchar(3), state varchar(20), service varchar(100), tunnel varchar(4), version varchar(100));")
+            except:
+                pass
+    
+            #loop through and pull out the data for the db
+            for host in root.iterfind('host'):
+                hostname = None
+                ip = host.find("./address").attrib['addr']
+                for openport in host.iter('port'):
+                    port = openport.attrib['portid']
+                    protocol = openport.attrib['protocol']
+                    state = openport.find("./state").attrib['state']
+                    try: service = openport.find("./service").attrib['name']
+                    except: service = "empty"
+                    try: tunnel = openport.find("./service").attrib['tunnel']
+                    except: tunnel="none"
+                    try: product = openport.find("./service").attrib['product'] 
+                    except: product=""
+                    try: productversion = openport.find("./service").attrib['version']
+                    except: productversion=""
+                    cur.execute("INSERT INTO "+dbtable+"(hostname,ip,port,protocol,state,service,tunnel,version) values (?,?,?,?,?,?,?,?)",(hostname,ip,port,protocol,state,service,tunnel,product+' '+productversion)) 
+            
+            con.commit()
+        
+        #Work out if the input is a single file or a folder 
+        if os.path.isfile(args.xml):
+            processxml(args.xml)
+        elif os.path.isdir(args.xml):
+            for xmlfile in os.listdir(args.xml):
+                if xmlfile.endswith('.xml'):
+                    processxml(os.path.join(args.xml ,xmlfile))
+
+    ###
+    ### ENUMERATION OF SERVICES FROM NMAP RESULTS
+    ###
+        
+    global servicearray
+    servicearray = {}
+    def findservices(self):
+        print "[+] Enumerating services" 
+        con=sqlite3.connect(database)
+        cur = con.cursor()
+        cur.execute('SELECT distinct service,protocol FROM '+table+';')
+        servicelist = cur.fetchall()
+        for service,protocol in servicelist:
+            cur.execute('SELECT ip ||":"|| port FROM '+table+' WHERE service="'+service+'"and state="open" and protocol="'+protocol+'";')
+            hostports=cur.fetchall()
+            nowlist=[]
+            if service not in servicearray:
+                servicearray[service]={}
+            for line in hostports:
+                nowlist.extend(line)
+            servicearray[service][protocol]=nowlist
+        print "   [*] Found "+str(len(servicearray))+" distinct services"
+        # if servicelist is longer than servicearray- there are closed ports
+    
+    # Finds any port with SSL listening     
+    def findssl(self):
+        print "[+] SSL port identification"
+        con=sqlite3.connect(database)
+        cur = con.cursor()
+        cur.execute('select ip||":"||port from '+table+' where tunnel="ssl" and state="open" and protocol="tcp";')
+        ssllist = cur.fetchall()
+        if ssllist:
+            nowlist=[]
+            for line in ssllist:
+                nowlist.extend(line)
+            servicearray['sslport']={"tcp": nowlist}
+            print "   [*] Found "+str(len(ssllist))+" SSL ports"
+                
+    # Identifies HTTP and HTTPS 
+    def findhttp(self,SSL):
+        con=sqlite3.connect(database)
+        cur = con.cursor()
+        if SSL is '1':
+            print "[+] HTTPS identification"
+            tunnel='ssl'
+            service='securehttp'
+        else:
+            print "[+] HTTP identification"
+            tunnel='none'
+            service='plainhttp'
+        cur.execute('SELECT ip ||":"|| port FROM '+table+' WHERE service like "%http%" and tunnel="'+tunnel+'" and state="open" and protocol="tcp";')
+        result=cur.fetchall()
+        nowlist=[]
+        if result:
+            for line in result:
+                nowlist.extend(line)
+            servicearray[service]={"tcp": nowlist}
+            print "   [*] Found "+str(len(nowlist))+" "+service+" ports"
+    
+    # Writes the output to files            
+    def filewrite(self,location):
+        servicedir = os.path.join(location, "services")
+        try:
+            os.mkdir(servicedir)
+        except OSError:
+            print "[!] Output folder already exists"
+            sys.exit(1)
+	#Writes the services out as an array to file
+	obfile = open ("services.array", 'w')
+	obfile.write(str(servicearray))
+	obfile.close
+        for service in servicearray:
+            for protocol,hostports in servicearray[service].iteritems():
+                if len(hostports) > 0:
+                    protocoldir = os.path.join(servicedir,protocol)
+                    try: os.mkdir(protocoldir)
+                    except: pass
+                    filename=service.replace('/','_')+'.service'
+                    prefix=""
+                    if service=="sslport":
+                        filename="ssl.host"
+                    elif service=="securehttp":
+                        filename="webapp.url.https"
+                        prefix="https://"
+                    elif service=="plainhttp":
+                        filename="webapp.url.http"
+                        prefix="http://"
+                
+                    sfile = open (os.path.join(protocoldir, filename), 'w')
+                    for line in hostports:
+                        sfile.write(prefix+line+"\n")
+                    sfile.close
+        
+    
+    ###
+    ### FORKING HELL
+    ###
+    def megafork(self, command, host):
+        os.popen
+    
+    ###
+    ### TESTING STUFF THAT'S BEEN FOUND
+    ###
+    class test:
+        def testprocess(todo):
+            pass
+            
+    
+    ###
+    ### Loading testing modules
+    ### 
+    def loadmodules(self):
+        print "[+] Loading modules"
+        syspathbackup = sys.path
+        sys.path = [testettelocation]
+        thetimeisnow = self.test()
+        for service in servicearray:
+            try:
+                testmodule = __import__(service)
+                print "   [*] "+service+" loaded"
+            except:
+                pass 
+        sys.path=syspathbackup
+
+def main():
+    n = naptest()
+    n.xml2sqlite()
+    n.findservices()    
+    n.findssl()
+    n.findhttp('1')
+    n.findhttp('0')
+    if args.level == "test":
+        n.loadmodules()
+    elif args.level == "generate":
+        n.filewrite(args.output)
+        pass
+    
+if __name__ == "__main__":
+    main()
