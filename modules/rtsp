@@ -1,0 +1,7 @@
+#Dictionary, where key is the tool name, then a list in the following order: type of command (ip, multiple), output folder, command string (DIR=output folder, HOST=ip:port, IP=ip, PORT=port, protocol
+
+{
+
+"cameradar": [ "ip", "cameradar", "cameradar -c /usr/share/cameradar/dictionaries/credentials.json -r /usr/share/cameradar/dictionaries/routes -p PORT -t IP > DIR/HOST.out", "tcp"]
+
+}
