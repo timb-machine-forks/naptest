@@ -1,4 +1,4 @@
-#!/bin/python2
+#!/bin/python3
 # Craft, Artisanal, Bespoke, Organic pentest script generator
 
 import sys,os,argparse,ast
@@ -11,23 +11,24 @@ cmdqueue=[]
 
 def parsefile(infile):
 	with open(infile) as f:
-		return ast.literal_eval(f.read())
+	    return ast.literal_eval(f.read())
 
 servicearray = parsefile(servicearrayfile)
 
 for service in servicearray:
+	print(service)
 	tests=""
 		
 	try:
 		tests=parsefile(modulepath+service)
-		print("[+] Found tests for "+service)
+		print(("[+] Found tests for "+service))
 	
 	
 	except:
 		pass
 
 	for test in tests:
-		print("   [*] Adding "+test+" to the queue")
+		print(("   [*] Adding "+test+" to the queue"))
 		testlist=tests[test]
 		testtype=testlist[0]
 		outputfolder=testlist[1]

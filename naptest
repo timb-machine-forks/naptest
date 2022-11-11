@@ -1,4 +1,4 @@
-#!/bin/python2
+#!/bin/python3
 # NAPTEST   # Not another pentest!?
 # Take a nap.
 import sys,sqlite3,os,argparse
@@ -81,7 +81,8 @@ class naptest:
     global servicearray
     servicearray = {}
     def findservices(self):
-        print "[+] Enumerating services" 
+        global servicearray
+        print("[+] Enumerating services") 
         con=sqlite3.connect(database)
         cur = con.cursor()
         cur.execute('SELECT distinct service,protocol FROM '+table+';')
@@ -95,12 +96,12 @@ class naptest:
             for line in hostports:
                 nowlist.extend(line)
             servicearray[service][protocol]=nowlist
-        print "   [*] Found "+str(len(servicearray))+" distinct services"
+        print("   [*] Found "+str(len(servicearray))+" distinct services")
         # if servicelist is longer than servicearray- there are closed ports
     
     # Finds any port with SSL listening     
     def findssl(self):
-        print "[+] SSL port identification"
+        print("[+] SSL port identification")
         con=sqlite3.connect(database)
         cur = con.cursor()
         cur.execute('select ip||":"||port from '+table+' where tunnel="ssl" and state="open" and protocol="tcp";')
@@ -110,18 +111,18 @@ class naptest:
             for line in ssllist:
                 nowlist.extend(line)
             servicearray['sslport']={"tcp": nowlist}
-            print "   [*] Found "+str(len(ssllist))+" SSL ports"
+            print("   [*] Found "+str(len(ssllist))+" SSL ports")
                 
     # Identifies HTTP and HTTPS 
     def findhttp(self,SSL):
         con=sqlite3.connect(database)
         cur = con.cursor()
-        if SSL is '1':
-            print "[+] HTTPS identification"
+        if SSL == '1':
+            print("[+] HTTPS identification")
             tunnel='ssl'
             service='securehttp'
         else:
-            print "[+] HTTP identification"
+            print("[+] HTTP identification")
             tunnel='none'
             service='plainhttp'
         cur.execute('SELECT ip ||":"|| port FROM '+table+' WHERE service like "%http%" and tunnel="'+tunnel+'" and state="open" and protocol="tcp";')
@@ -131,7 +132,7 @@ class naptest:
             for line in result:
                 nowlist.extend(line)
             servicearray[service]={"tcp": nowlist}
-            print "   [*] Found "+str(len(nowlist))+" "+service+" ports"
+            print("   [*] Found "+str(len(nowlist))+" "+service+" ports")
     
     # Writes the output to files            
     def filewrite(self,location):
@@ -139,14 +140,14 @@ class naptest:
         try:
             os.mkdir(servicedir)
         except OSError:
-            print "[!] Output folder already exists"
+            print("[!] Output folder already exists")
             sys.exit(1)
-	#Writes the services out as an array to file
-	obfile = open ("services.array", 'w')
-	obfile.write(str(servicearray))
-	obfile.close
+    #Writes the services out as an array to file
+        obfile = open ("services.array", 'w')
+        obfile.write(str(servicearray))
+        obfile.close
         for service in servicearray:
-            for protocol,hostports in servicearray[service].iteritems():
+            for protocol,hostports in servicearray[service].items():
                 if len(hostports) > 0:
                     protocoldir = os.path.join(servicedir,protocol)
                     try: os.mkdir(protocoldir)
@@ -186,14 +187,14 @@ class naptest:
     ### Loading testing modules
     ### 
     def loadmodules(self):
-        print "[+] Loading modules"
+        print("[+] Loading modules")
         syspathbackup = sys.path
         sys.path = [testettelocation]
         thetimeisnow = self.test()
         for service in servicearray:
             try:
                 testmodule = __import__(service)
-                print "   [*] "+service+" loaded"
+                print("   [*] "+service+" loaded")
             except:
                 pass 
         sys.path=syspathbackup

@@ -3,6 +3,6 @@ This is (probably) the world's most awful pentest automation script. It does man
 
 Usage:
 
-$ python2 naptest generate <nmap XML file/folder containing nmap XML files> #Generates the services db/array/flat files from nmap
-$ python2 testgen.py #Needs the services.array from the above command
+$ python naptest generate <nmap XML file/folder containing nmap XML files> #Generates the services db/array/flat files from nmap
+$ python testgen.py #Needs the services.array from the above command
 $ bash CABO.sh #Congrats, you have pentested
